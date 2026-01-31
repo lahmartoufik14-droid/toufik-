@@ -17,8 +17,18 @@ export const transcribeAudio = async (audioPath: string): Promise<WhisperResult>
     language: "ar"
   });
 
+  interface WordInfo {
+    word: string;
+    start: number;
+    end: number;
+  }
+
+  interface SegmentWithWords {
+    words?: WordInfo[];
+  }
+
   const words = response.segments?.flatMap((segment) =>
-    segment.words?.map((word) => ({
+    (segment as unknown as SegmentWithWords).words?.map((word: WordInfo) => ({
       word: word.word,
       start: word.start,
       end: word.end

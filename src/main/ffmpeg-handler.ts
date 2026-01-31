@@ -1,4 +1,4 @@
-import ffmpeg from "fluent-ffmpeg";
+import ffmpeg, { FfprobeData } from "fluent-ffmpeg";
 import { promises as fs } from "fs";
 import path from "path";
 import { ExportPayload } from "./video-processor";
@@ -12,7 +12,7 @@ export const readVideoMetadata = async (filePath: string): Promise<VideoMetadata
   await ensureExists(filePath);
 
   return new Promise((resolve, reject) => {
-    ffmpeg.ffprobe(filePath, (err, metadata) => {
+    ffmpeg.ffprobe(filePath, (err: Error | null, metadata: FfprobeData) => {
       if (err) {
         reject(err);
         return;

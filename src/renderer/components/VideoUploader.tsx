@@ -15,8 +15,9 @@ const VideoUploader = ({ onUpload, video }: VideoUploaderProps) => {
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      onUpload(file.path);
+    if (file && window.api) {
+      const filePath = window.api.getFilePath(file);
+      onUpload(filePath);
     }
   };
 

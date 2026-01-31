@@ -16,6 +16,7 @@ declare global {
         audioTools: AudioToolSettings;
       }) => Promise<void>;
       analyzeVideo: (filePath: string) => Promise<{ metadata: VideoMetadata; warnings: string[] }>;
+      getFilePath: (file: File) => string;
     };
   }
 }
