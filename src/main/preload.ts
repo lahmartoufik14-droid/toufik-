@@ -13,5 +13,6 @@ contextBridge.exposeInMainWorld("api", {
     videoTools: VideoToolSettings;
     audioTools: AudioToolSettings;
   }) => ipcRenderer.invoke("video:export", payload),
-  analyzeVideo: (filePath: string) => ipcRenderer.invoke("video:analyze", filePath)
+  analyzeVideo: (filePath: string) => ipcRenderer.invoke("video:analyze", filePath),
+  getFilePath: (file: File) => (file as unknown as { path: string }).path
 });
