@@ -1,0 +1,12 @@
+{
+  "appId": "com.quran.video.editor",
+  "productName": "Quran Video Editor",
+  "files": ["dist/**/*", "package.json"],
+  "directories": {
+    "buildResources": "public"
+  },
+  "win": {
+    "target": "nsis",
+    "icon": "public/favicon.ico"
+  }
+}
