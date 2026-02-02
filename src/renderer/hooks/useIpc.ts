@@ -17,6 +17,10 @@ declare global {
       }) => Promise<void>;
       analyzeVideo: (filePath: string) => Promise<{ metadata: VideoMetadata; warnings: string[] }>;
       getFilePath: (file: File) => string;
+      
+      // Web-based processing
+      processVideoWeb: (payload: any) => Promise<any>;
+      onVideoProcess: (callback: (payload: any) => void) => void;
     };
   }
 }

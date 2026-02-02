@@ -2,8 +2,10 @@ import { app, BrowserWindow } from "electron";
 import path from "path";
 import { registerIpcHandlers } from "./ipc-handlers";
 
+let mainWindow: BrowserWindow | null = null;
+
 const createWindow = () => {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
     webPreferences: {
@@ -29,3 +31,5 @@ app.on("window-all-closed", () => {
     app.quit();
   }
 });
+
+export const getMainWindow = () => mainWindow;
