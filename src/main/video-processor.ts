@@ -1,6 +1,6 @@
 import path from "path";
 import { promises as fs } from "fs";
-import { processVideo, extractAudio, readVideoMetadata } from "./ffmpeg-handler";
+import { processVideo, extractAudio, readVideoMetadata } from "./web-video-handler";
 import {
   AudioToolSettings,
   ProjectSettings,
