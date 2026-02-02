@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState, useEffect } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import VideoUploader from "./components/VideoUploader";
 import VideoPreview from "./components/VideoPreview";
 import Timeline from "./components/Timeline";
@@ -17,133 +17,164 @@ import {
 import { defaultAudioTools, defaultProjectSettings, defaultTextTools, defaultVideoTools } from "./defaults";
 import { useIpc } from "./hooks/useIpc";
 import { VideoProcessor } from "./services/video-processing";
+import "./styles.css";
 
 const App = () => {
   const [video, setVideo] = useState<VideoMetadata | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
   const [words, setWords] = useState<WhisperResult | null>(null);
   const [analysisWarnings, setAnalysisWarnings] = useState<string[]>([]);
   const [textTools, setTextTools] = useState<TextToolSettings>(defaultTextTools);
   const [videoTools, setVideoTools] = useState<VideoToolSettings>(defaultVideoTools);
   const [audioTools, setAudioTools] = useState<AudioToolSettings>(defaultAudioTools);
   const [projectSettings, setProjectSettings] = useState<ProjectSettings>(defaultProjectSettings);
-  const [status, setStatus] = useState<string>("جاهز");
+  const [status, setStatus] = useState<string>("جاهز للبدء");
+  const [exportProgress, setExportProgress] = useState<number>(0);
 
   const ipc = useIpc();
 
   const handleUpload = useCallback(
-    async (filePath: string) => {
+    async (file: File) => {
       setStatus("يتم تحميل الفيديو...");
       
       try {
-        // Get basic metadata from main process
-        const metadata = await ipc.getMetadata(filePath);
-        
-        // Enhance metadata with duration from renderer
-        const file = await fetch(filePath).then(res => res.blob());
-        const videoFile = new File([file], metadata.name, { type: `video/${metadata.format}` });
+        setVideoFile(file);
         
         const videoProcessor = VideoProcessor.getInstance();
-        const enhancedMetadata = await videoProcessor.getVideoMetadata(videoFile);
+        const metadata = await videoProcessor.getVideoMetadata(file);
+        
+        const filePath = (file as any).path || URL.createObjectURL(file);
         
         setVideo({
-          ...metadata,
-          duration: enhancedMetadata.duration,
-          size: enhancedMetadata.size
+          name: file.name,
+          path: filePath,
+          size: metadata.size,
+          duration: metadata.duration,
+          format: metadata.format as VideoMetadata["format"]
         });
         
-        const analysis = await ipc.analyzeVideo(filePath);
-        setAnalysisWarnings(analysis.warnings);
-        setStatus("الفيديو جاهز للتحرير");
+        setStatus("الفيديو جاهز للتحرير ✓");
+        
+        if (filePath.startsWith('blob:') === false) {
+          const analysis = await ipc.analyzeVideo(filePath);
+          setAnalysisWarnings(analysis.warnings || []);
+        }
       } catch (error) {
-        console.error("Error loading video:", error);
-        setStatus("فشل تحميل الفيديو");
+        console.error("خطأ في تحميل الفيديو:", error);
+        setStatus("فشل تحميل الفيديو ✗");
       }
     },
     [ipc]
   );
 
   const handleWhisper = useCallback(async () => {
-    if (!video) {
+    if (!videoFile) {
+      setStatus("الرجاء رفع فيديو أولاً");
       return;
     }
-    setStatus("يتم التعرف على الكلمات...");
+    
+    setStatus("يتم استخراج الصوت...");
     
     try {
-      // Extract audio using web-based approach
-      const file = await fetch(video.path).then(res => res.blob());
-      const videoFile = new File([file], video.name, { type: `video/${video.format}` });
-      
       const videoProcessor = VideoProcessor.getInstance();
       const audioBlob = await videoProcessor.extractAudio(videoFile);
       
-      // Save audio blob to temporary file
-      const audioPath = await saveBlobToTempFile(audioBlob, "whisper-audio.wav");
+      setStatus("يتم التعرف على الكلمات...");
       
-      const result = await ipc.transcribeAudio(audioPath);
-      setWords(result);
-      setStatus("تم إنشاء الكابشن");
+      const arrayBuffer = await audioBlob.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const fs = require('fs');
+      const path = require('path');
+      const os = require('os');
+      
+      const tempAudioPath = path.join(os.tmpdir(), `whisper-${Date.now()}.wav`);
+      
+      if (typeof window !== 'undefined' && window.api && window.api.saveVideoBlob) {
+        await window.api.saveVideoBlob(arrayBuffer, tempAudioPath);
+        const result = await ipc.transcribeAudio(tempAudioPath);
+        setWords(result);
+        setStatus("تم إنشاء الترجمة بنجاح ✓");
+      } else {
+        setStatus("فشل حفظ الملف الصوتي");
+      }
     } catch (error) {
-      console.error("Error in whisper processing:", error);
-      setStatus("فشل إنشاء الكابشن");
+      console.error("خطأ في معالجة Whisper:", error);
+      setStatus("فشل إنشاء الترجمة ✗");
     }
-  }, [ipc, video]);
-
-  const saveBlobToTempFile = async (blob: Blob, filename: string): Promise<string> => {
-    // This function would be implemented to save the blob to a temporary file
-    // For now, we'll return a placeholder path
-    return `${video?.path}.temp/${filename}`;
-  };
+  }, [videoFile, ipc]);
 
   const handleExport = useCallback(
-    async (outputPath: string) => {
-      if (!video) {
+    async () => {
+      if (!videoFile) {
+        setStatus("الرجاء رفع فيديو أولاً");
         return;
       }
+      
       setStatus("يتم تصدير الفيديو...");
+      setExportProgress(0);
       
       try {
-        // Use web-based video processing
-        const file = await fetch(video.path).then(res => res.blob());
-        const videoFile = new File([file], video.name, { type: `video/${video.format}` });
-        
         const videoProcessor = VideoProcessor.getInstance();
-        const processedVideo = await videoProcessor.processVideo(videoFile, {
-          brightness: videoTools.brightness,
-          contrast: videoTools.contrast,
-          saturation: videoTools.saturation,
-          rotation: videoTools.rotation,
-          scale: videoTools.scale,
-          playbackRate: videoTools.playbackRate,
-          captionText: textTools.captionText,
-          captionColor: textTools.color,
-          captionSize: textTools.fontSize,
-          removeAudio: audioTools.removeAudio,
-          volume: audioTools.volume,
-          tempo: audioTools.tempo,
-          trimStart: videoTools.trimStart,
-          trimEnd: videoTools.trimEnd
-        });
         
-        // Save the processed video to the output path
-        // In a real implementation, this would save the blob to the filesystem
-        setStatus("تم التصدير بنجاح");
+        const processedBlob = await videoProcessor.processVideo(
+          videoFile,
+          {
+            brightness: videoTools.brightness,
+            contrast: videoTools.contrast,
+            saturation: videoTools.saturation,
+            rotation: videoTools.rotation,
+            scale: videoTools.scale,
+            playbackRate: videoTools.playbackRate,
+            captionText: textTools.captionText,
+            captionColor: textTools.color,
+            captionSize: textTools.fontSize,
+            captionFont: textTools.fontFamily,
+            captionPosition: textTools.position,
+            captionBackground: textTools.background,
+            captionOpacity: textTools.opacity,
+            removeAudio: audioTools.removeAudio,
+            volume: audioTools.volume,
+            tempo: audioTools.tempo,
+            trimStart: videoTools.trimStart,
+            trimEnd: videoTools.trimEnd
+          },
+          (progress) => {
+            setExportProgress(progress);
+            setStatus(`جاري التصدير... ${Math.round(progress)}%`);
+          }
+        );
         
-        // Also call the original export for compatibility
-        await ipc.exportVideo({
-          inputPath: video.path,
-          outputPath,
+        const outputPath = await ipc.exportVideo({
+          inputPath: video?.path || '',
+          outputPath: `output-${Date.now()}.webm`,
           projectSettings,
           textTools,
           videoTools,
           audioTools
         });
         
+        if (outputPath && window.api && window.api.saveVideoBlob) {
+          const arrayBuffer = await processedBlob.arrayBuffer();
+          await window.api.saveVideoBlob(arrayBuffer, outputPath);
+          setStatus(`تم التصدير بنجاح ✓ - ${outputPath}`);
+        } else {
+          const url = URL.createObjectURL(processedBlob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `output-${Date.now()}.webm`;
+          a.click();
+          URL.revokeObjectURL(url);
+          setStatus("تم التصدير بنجاح ✓");
+        }
+        
+        setExportProgress(100);
       } catch (error) {
-        console.error("Error exporting video:", error);
-        setStatus("فشل تصدير الفيديو");
+        console.error("خطأ في تصدير الفيديو:", error);
+        setStatus("فشل تصدير الفيديو ✗");
+        setExportProgress(0);
       }
     },
-    [ipc, video, projectSettings, textTools, videoTools, audioTools]
+    [videoFile, video, ipc, projectSettings, textTools, videoTools, audioTools]
   );
 
   const summary = useMemo(
@@ -162,11 +193,16 @@ const App = () => {
       <div className="layout">
         <div className="left">
           <VideoUploader onUpload={handleUpload} video={video} />
-          <VideoPreview video={video} words={words} />
+          <VideoPreview video={video} words={words} videoFile={videoFile} />
           <Timeline words={words} />
         </div>
         <div className="right">
-          <ProjectManager summary={summary} onReset={() => setVideo(null)} />
+          <ProjectManager summary={summary} onReset={() => {
+            setVideo(null);
+            setVideoFile(null);
+            setWords(null);
+            setStatus("جاهز للبدء");
+          }} />
           <EditorTools
             textTools={textTools}
             videoTools={videoTools}
@@ -175,7 +211,12 @@ const App = () => {
             onVideoChange={setVideoTools}
             onAudioChange={setAudioTools}
           />
-          <ExportSettings onExport={handleExport} projectSettings={projectSettings} onChange={setProjectSettings} />
+          <ExportSettings 
+            onExport={handleExport} 
+            projectSettings={projectSettings} 
+            onChange={setProjectSettings}
+            exportProgress={exportProgress}
+          />
         </div>
       </div>
     </div>

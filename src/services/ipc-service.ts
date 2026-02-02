@@ -1,3 +1,2 @@
-import { ipcRenderer } from "electron";
-
-export const invoke = (channel: string, payload?: unknown) => ipcRenderer.invoke(channel, payload);
+// هذا الملف لم يعد مستخدماً - تم نقل جميع العمليات إلى المكونات الحديثة
+export {};

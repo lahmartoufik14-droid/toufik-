@@ -14,13 +14,11 @@ declare global {
         textTools: TextToolSettings;
         videoTools: VideoToolSettings;
         audioTools: AudioToolSettings;
-      }) => Promise<void>;
+      }) => Promise<string>;
       analyzeVideo: (filePath: string) => Promise<{ metadata: VideoMetadata; warnings: string[] }>;
+      saveVideoBlob: (data: ArrayBuffer, outputPath: string) => Promise<string>;
+      selectFile: () => Promise<string | null>;
       getFilePath: (file: File) => string;
-      
-      // Web-based processing
-      processVideoWeb: (payload: any) => Promise<any>;
-      onVideoProcess: (callback: (payload: any) => void) => void;
     };
   }
 }
