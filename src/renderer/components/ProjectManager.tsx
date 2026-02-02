@@ -16,13 +16,42 @@ interface ProjectManagerProps {
 const ProjectManager = ({ summary, onReset }: ProjectManagerProps) => {
   return (
     <div className="panel">
-      <h2>إدارة المشروع</h2>
+      <h2>📊 ملخص المشروع</h2>
       <div className="summary">
-        <div>الحالة: {summary.status}</div>
-        <div>عدد الكلمات: {summary.words?.words.length ?? 0}</div>
-        <div>تحذيرات التحليل: {summary.analysisWarnings.join("، ") || "لا يوجد"}</div>
+        <div className="summary-item">
+          <span className="summary-label">الحالة:</span>
+          <span className="summary-value">{summary.status}</span>
+        </div>
+        {summary.video && (
+          <div className="summary-item">
+            <span className="summary-label">الفيديو:</span>
+            <span className="summary-value">{summary.video.name}</span>
+          </div>
+        )}
+        <div className="summary-item">
+          <span className="summary-label">الكلمات:</span>
+          <span className="summary-value">{summary.words?.words.length ?? 0}</span>
+        </div>
       </div>
-      <button onClick={onReset}>بدء مشروع جديد</button>
+      
+      {summary.analysisWarnings.length > 0 && (
+        <div className="warnings">
+          <h4>⚠️ تحذيرات</h4>
+          <ul>
+            {summary.analysisWarnings.map((warning, index) => (
+              <li key={index}>{warning}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      
+      <button 
+        className="primary" 
+        onClick={onReset}
+        style={{ width: '100%', marginTop: '1rem' }}
+      >
+        🔄 بدء مشروع جديد
+      </button>
     </div>
   );
 };

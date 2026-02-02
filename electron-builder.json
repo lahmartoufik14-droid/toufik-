@@ -1,16 +1,29 @@
 {
-  "appId": "com.quran.video.editor",
+  "appId": "com.quran.videoeditor",
   "productName": "Quran Video Editor",
-  "files": ["dist/**/*", "package.json"],
   "directories": {
-    "buildResources": "public"
+    "output": "release"
   },
+  "files": [
+    "dist/**/*",
+    "public/**/*",
+    "package.json"
+  ],
   "win": {
-    "target": "nsis",
-    "signAndEditExecutable": false
+    "target": [
+      {
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      }
+    ],
+    "icon": "public/icon.ico"
   },
   "nsis": {
     "oneClick": false,
-    "allowToChangeInstallationDirectory": true
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true
   }
 }

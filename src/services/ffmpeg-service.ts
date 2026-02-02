@@ -1,3 +1,6 @@
-import { extractAudio, processVideo, readVideoMetadata } from "../main/web-video-handler";
+/**
+ * هذا الملف لم يعد يستخدم FFmpeg
+ * جميع عمليات معالجة الفيديو تتم الآن في الـ Renderer Process باستخدام Canvas API
+ */
 
-export { extractAudio, processVideo, readVideoMetadata };
+export const noFFmpegNeeded = true;

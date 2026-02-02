@@ -1,5 +1,2 @@
-import { promises as fs } from "fs";
-
-export const ensureDirectory = async (dir: string) => {
-  await fs.mkdir(dir, { recursive: true });
-};
+// هذا الملف لم يعد مستخدماً - تم نقل جميع العمليات إلى المكونات الحديثة
+export {};

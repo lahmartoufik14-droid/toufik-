@@ -8,13 +8,11 @@ interface ToolbarProps {
 const Toolbar = ({ status, onWhisper }: ToolbarProps) => {
   return (
     <header className="toolbar">
-      <div className="logo">Quran Video Editor</div>
-      <div className="actions">
-        <button className="secondary" onClick={onWhisper}>
-          تعرف على الكلمات
-        </button>
-      </div>
+      <h1>🎬 محرر فيديو القرآن الكريم</h1>
       <div className="status">{status}</div>
+      <button onClick={onWhisper}>
+        🎤 التعرف على الكلمات
+      </button>
     </header>
   );
 };

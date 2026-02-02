@@ -4,13 +4,13 @@ export const defaultTextTools: TextToolSettings = {
   captionText: "",
   fontSize: 32,
   color: "#ffffff",
-  fontFamily: "Cairo",
+  fontFamily: "Arial",
   alignment: "center",
   shadow: true,
   opacity: 1,
   speed: 1,
   position: "bottom",
-  background: "rgba(0,0,0,0.4)"
+  background: "rgba(0, 0, 0, 0.7)"
 };
 
 export const defaultVideoTools: VideoToolSettings = {
@@ -20,9 +20,9 @@ export const defaultVideoTools: VideoToolSettings = {
   rotation: 0,
   brightness: 0,
   contrast: 0,
-  saturation: 0,
-  filter: "None",
-  transition: "None",
+  saturation: 1,
+  filter: "",
+  transition: "",
   scale: 1
 };
 
@@ -30,13 +30,13 @@ export const defaultAudioTools: AudioToolSettings = {
   volume: 1,
   backgroundMusic: "",
   removeAudio: false,
-  equalizer: "Flat",
+  equalizer: "",
   noiseReduction: 0,
   echo: 0,
   effects: [],
   compression: 0,
   tempo: 1,
-  preview: true
+  preview: false
 };
 
 export const defaultProjectSettings: ProjectSettings = {

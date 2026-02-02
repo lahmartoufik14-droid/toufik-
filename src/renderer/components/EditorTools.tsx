@@ -16,10 +16,16 @@ interface EditorToolsProps {
 const EditorTools = ({ textTools, videoTools, audioTools, onTextChange, onVideoChange, onAudioChange }: EditorToolsProps) => {
   return (
     <div className="panel">
-      <h2>أدوات التحرير</h2>
-      <TextEditor settings={textTools} onChange={onTextChange} />
-      <VideoEffects settings={videoTools} onChange={onVideoChange} />
-      <AudioEditor settings={audioTools} onChange={onAudioChange} />
+      <h2>🛠️ أدوات التحرير</h2>
+      <div className="tools-section">
+        <TextEditor settings={textTools} onChange={onTextChange} />
+      </div>
+      <div className="tools-section">
+        <VideoEffects settings={videoTools} onChange={onVideoChange} />
+      </div>
+      <div className="tools-section">
+        <AudioEditor settings={audioTools} onChange={onAudioChange} />
+      </div>
     </div>
   );
 };

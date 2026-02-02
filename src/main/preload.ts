@@ -14,11 +14,8 @@ contextBridge.exposeInMainWorld("api", {
     audioTools: AudioToolSettings;
   }) => ipcRenderer.invoke("video:export", payload),
   analyzeVideo: (filePath: string) => ipcRenderer.invoke("video:analyze", filePath),
-  getFilePath: (file: File) => (file as unknown as { path: string }).path,
-  
-  // Web-based video processing functions
-  processVideoWeb: (payload: any) => ipcRenderer.invoke("video:process-web", payload),
-  onVideoProcess: (callback: (payload: any) => void) => {
-    ipcRenderer.on("video:process-web", (_event, payload) => callback(payload));
-  }
+  saveVideoBlob: (data: ArrayBuffer, outputPath: string) => 
+    ipcRenderer.invoke("video:save-blob", Buffer.from(data), outputPath),
+  selectFile: () => ipcRenderer.invoke("dialog:select-file"),
+  getFilePath: (file: File) => (file as unknown as { path: string }).path || ''
 });
